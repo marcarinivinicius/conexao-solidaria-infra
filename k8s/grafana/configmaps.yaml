@@ -1,0 +1,41 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-datasources
+  namespace: conexao-solidaria
+data:
+  zabbix.yaml: |
+    apiVersion: 1
+    datasources:
+      - name: Zabbix
+        type: alexanderzobnin-zabbix-datasource
+        access: proxy
+        url: http://zabbix-web:8080/api_jsonrpc.php
+        isDefault: true
+        editable: true
+        jsonData:
+          username: Admin
+          trends: true
+          trendsFrom: "7d"
+          trendsRange: "4d"
+          dbConnectionEnable: false
+        secureJsonData:
+          password: zabbix
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboards-provider
+  namespace: conexao-solidaria
+data:
+  dashboards.yaml: |
+    apiVersion: 1
+    providers:
+      - name: "Conexao Solidaria"
+        orgId: 1
+        folder: ""
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 30
+        options:
+          path: /var/lib/grafana/dashboards

@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: zabbix-agent2
+  namespace: conexao-solidaria
+spec:
+  selector:
+    matchLabels:
+      app: zabbix-agent2
+  template:
+    metadata:
+      labels:
+        app: zabbix-agent2
+    spec:
+      containers:
+        - name: zabbix-agent2
+          image: zabbix/zabbix-agent2:alpine-6.4-latest
+          ports:
+            - containerPort: 10050
+          env:
+            - name: ZBX_HOSTNAME
+              value: zabbix-agent2
+            - name: ZBX_SERVER_HOST
+              value: zabbix-server
+          # Plugin Docker embutido no agent2 le direto do socket do node
+          # para reportar CPU/memoria por container (inclui os pods da app).
+          # Caveat: so funciona se o node expoe /var/run/docker.sock (driver
+          # docker do minikube). Em nodes containerd, esse painel fica vazio
+          # e so as metricas HTTP (prometheus.data) continuam funcionando -
+          # ver README para o fallback via `kubectl top pods`.
+          volumeMounts:
+            - name: docker-sock
+              mountPath: /var/run/docker.sock
+          resources:
+            requests: { cpu: 50m, memory: 64Mi }
+            limits: { cpu: 200m, memory: 128Mi }
+      volumes:
+        - name: docker-sock
+          hostPath:
+            path: /var/run/docker.sock
+            type: FileOrCreate
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: zabbix-agent2
+  namespace: conexao-solidaria
+spec:
+  selector:
+    app: zabbix-agent2
+  ports:
+    - port: 10050
+      targetPort: 10050

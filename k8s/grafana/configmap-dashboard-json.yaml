@@ -1,0 +1,56 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-conexao-solidaria
+  namespace: conexao-solidaria
+data:
+  conexao-solidaria.json: |
+    {
+      "title": "Conexao Solidaria - Observabilidade",
+      "uid": "conexao-solidaria-overview",
+      "timezone": "browser",
+      "schemaVersion": 39,
+      "version": 1,
+      "refresh": "30s",
+      "time": { "from": "now-1h", "to": "now" },
+      "panels": [
+        {
+          "id": 1,
+          "type": "timeseries",
+          "title": "HTTP Requests Total - campaign-api",
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+          "datasource": { "type": "alexanderzobnin-zabbix-datasource", "uid": "Zabbix" },
+          "targets": [
+            {
+              "refId": "A",
+              "queryType": 0,
+              "group": { "filter": "Conexao Solidaria" },
+              "host": { "filter": "campaign-api" },
+              "application": { "filter": "" },
+              "item": { "filter": "HTTP Requests Total" },
+              "functions": [],
+              "options": { "showDisabledItems": false }
+            }
+          ]
+        },
+        {
+          "id": 2,
+          "type": "timeseries",
+          "title": "Containers Docker (descoberta)",
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+          "datasource": { "type": "alexanderzobnin-zabbix-datasource", "uid": "Zabbix" },
+          "targets": [
+            {
+              "refId": "A",
+              "queryType": 0,
+              "group": { "filter": "Conexao Solidaria" },
+              "host": { "filter": "docker-containers" },
+              "application": { "filter": "" },
+              "item": { "filter": "/.*/" },
+              "functions": [],
+              "options": { "showDisabledItems": false }
+            }
+          ]
+        }
+      ]
+    }

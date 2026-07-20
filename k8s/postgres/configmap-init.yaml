@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-init
+  namespace: conexao-solidaria
+data:
+  01-zabbix-db.sql: |
+    CREATE USER zabbix WITH PASSWORD 'zabbix';
+    CREATE DATABASE zabbix OWNER zabbix ENCODING 'UTF8' TEMPLATE template0;
