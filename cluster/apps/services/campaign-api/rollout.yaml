@@ -1,0 +1,75 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: conexao-solidaria-campaign-api
+  namespace: conexao-solidaria
+  labels:
+    app: conexao-solidaria-campaign-api
+spec:
+  replicas: 2
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      app: conexao-solidaria-campaign-api
+  template:
+    metadata:
+      labels:
+        app: conexao-solidaria-campaign-api
+      annotations:
+        prometheus.io/path: /metrics
+        prometheus.io/port: "8080"
+        prometheus.io/scrape: "true"
+    spec:
+      containers:
+        - name: campaign-api
+          image: ghcr.io/marcarinivinicius/conexao-solidaria-campaign-api:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          env:
+            - name: ASPNETCORE_ENVIRONMENT
+              value: Production
+            - name: ConnectionStrings__Postgres
+              valueFrom:
+                secretKeyRef:
+                  name: campaign-api-secrets
+                  key: POSTGRES_CONNECTION_STRING
+            - name: RABBITMQ_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: campaign-api-secrets
+                  key: RABBITMQ_USERNAME
+            - name: RABBITMQ_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: campaign-api-secrets
+                  key: RABBITMQ_PASSWORD
+            - name: Jwt__SecretKey
+              valueFrom:
+                secretKeyRef:
+                  name: campaign-api-secrets
+                  key: JWT_SECRET_KEY
+          readinessProbe:
+            httpGet: { path: /health, port: 8080 }
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /health, port: 8080 }
+            initialDelaySeconds: 20
+            periodSeconds: 20
+          resources:
+            requests: { cpu: 100m, memory: 128Mi }
+            limits: { cpu: 500m, memory: 512Mi }
+  strategy:
+    canary:
+      canaryService: conexao-solidaria-campaign-api-svc-preview
+      stableService: conexao-solidaria-campaign-api-svc-stable
+      trafficRouting:
+        nginx:
+          stableIngress: conexao-solidaria-campaign-api-ingress
+      steps:
+        - setWeight: 20
+        - pause: { duration: 30s }
+        - setWeight: 60
+        - pause: { duration: 30s }
+        - setWeight: 100

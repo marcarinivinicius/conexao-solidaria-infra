@@ -1,10 +1,42 @@
 # conexao-solidaria-infra
 
-Infra compartilhada do hackathon "Conexão Solidária": Postgres, RabbitMQ,
-Zabbix (server + web + agent2) e Grafana. Esse repo não roda a aplicação —
-só a infra que ela depende (Postgres/RabbitMQ) e o stack de observabilidade
-(Zabbix + Grafana), que o PDF do desafio pede explicitamente com pods
-rodando de verdade e dashboards com dados reais.
+Repositório **GitOps** do hackathon "Conexão Solidária": infra
+compartilhada (Postgres, RabbitMQ, Zabbix, Grafana) **e** os manifests de
+deploy de cada serviço (`campaign-api`, `donation-worker`), sincronizados
+no cluster pelo ArgoCD com rollout canary via Argo Rollouts.
+
+```
+infra/                    # Postgres, RabbitMQ, Zabbix, Grafana, ArgoCD, Argo Rollouts
+cluster/apps/services/
+  campaign-api/            # Rollout (canary + Ingress), Services, Secret
+  campaign-api-app.yaml     # Application do ArgoCD
+  donation-worker/          # Rollout (canary por replica), Secret
+  donation-worker-app.yaml  # Application do ArgoCD
+```
+
+## Fluxo de deploy (GitOps)
+
+1. Push na `main` de `conexao-solidaria-campaign-api` ou
+   `conexao-solidaria-donation-worker`.
+2. O CI daquele repo builda a imagem e publica em
+   `ghcr.io/marcarinivinicius/<repo>:<sha>`.
+3. O mesmo CI abre um **PR aqui**, bumpando o `newTag` em
+   `cluster/apps/services/<app>/kustomization.yaml` (via
+   `kustomize edit set image`).
+4. Alguém revisa e faz merge do PR.
+5. O **ArgoCD** detecta a mudança neste repo e sincroniza automaticamente
+   (`syncPolicy.automated`) — sem precisar rodar `kubectl apply` manual.
+6. O **Argo Rollouts** assume a partir daí: como o recurso é `kind:
+   Rollout` (não `Deployment`), a nova imagem sobe em **canary**
+   (20% → pausa 30s → 60% → pausa 30s → 100%), acompanhável com
+   `kubectl argo rollouts get rollout <app> -n conexao-solidaria --watch`.
+
+Ver [`infra/argocd/README.md`](infra/argocd/README.md) e
+[`infra/argo-rollouts/README.md`](infra/argo-rollouts/README.md) para
+instalar os dois controllers no cluster.
+
+Isso substitui o `kubectl apply -k k8s/` manual que os repos de serviço
+usavam antes — agora o deploy só acontece via PR mergeado aqui.
 
 Credenciais usadas abaixo (`conexaosolidaria` / `admin` / `zabbix`) são
 defaults de desenvolvimento, documentados de propósito para facilitar a
@@ -53,9 +85,15 @@ Requer `curl` e `jq` instalados.
 
 ```bash
 minikube start
-kubectl apply -k k8s/
+minikube addons enable ingress   # necessario pro trafficRouting do canary da campaign-api
+kubectl apply -k infra/
 kubectl get pods -n conexao-solidaria -w   # espera tudo virar Running
 ```
+
+Isso sobe só a infra compartilhada. Os serviços (`campaign-api`,
+`donation-worker`) sobem via ArgoCD, não com `kubectl apply -k` direto —
+ver [Fluxo de deploy (GitOps)](#fluxo-de-deploy-gitops) acima e
+[`infra/argocd/README.md`](infra/argocd/README.md).
 
 Acesso (via NodePort, ajuste conforme seu driver do minikube — em Docker
 Desktop/driver docker use `minikube service <nome> -n conexao-solidaria`):

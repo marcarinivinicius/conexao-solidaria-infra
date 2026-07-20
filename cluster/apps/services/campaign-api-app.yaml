@@ -1,0 +1,22 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: conexao-solidaria-campaign-api
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: conexao-solidaria
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    path: cluster/apps/services/campaign-api
+    repoURL: https://github.com/marcarinivinicius/conexao-solidaria-infra.git
+    targetRevision: main
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
