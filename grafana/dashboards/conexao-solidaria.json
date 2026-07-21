@@ -10,7 +10,7 @@
     {
       "id": 1,
       "type": "timeseries",
-      "title": "HTTP Requests Total - campaign-api",
+      "title": "Health Requests Total - campaign-api",
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
       "datasource": { "type": "alexanderzobnin-zabbix-datasource", "uid": "Zabbix" },
       "targets": [
@@ -20,7 +20,7 @@
           "group": { "filter": "Conexao Solidaria" },
           "host": { "filter": "campaign-api" },
           "application": { "filter": "" },
-          "item": { "filter": "HTTP Requests Total" },
+          "item": { "filter": "Health Requests Total" },
           "functions": [],
           "options": { "showDisabledItems": false }
         }
@@ -29,7 +29,7 @@
     {
       "id": 2,
       "type": "timeseries",
-      "title": "CPU Seconds Total - donation-worker",
+      "title": "Health Requests Total - donation-worker",
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
       "datasource": { "type": "alexanderzobnin-zabbix-datasource", "uid": "Zabbix" },
       "targets": [
@@ -39,7 +39,7 @@
           "group": { "filter": "Conexao Solidaria" },
           "host": { "filter": "donation-worker" },
           "application": { "filter": "" },
-          "item": { "filter": "CPU Seconds Total" },
+          "item": { "filter": "Health Requests Total" },
           "functions": [],
           "options": { "showDisabledItems": false }
         }

@@ -75,21 +75,6 @@ services:
       - "8080:8080" # Zabbix web UI (login padrao: Admin / zabbix)
     networks: [conexao-solidaria-net]
 
-  zabbix-agent2:
-    image: zabbix/zabbix-agent2:alpine-6.4-latest
-    restart: unless-stopped
-    depends_on:
-      - zabbix-server
-    environment:
-      ZBX_HOSTNAME: zabbix-agent2
-      ZBX_SERVER_HOST: zabbix-server
-      ZBX_ACTIVE_ALLOW: "true"
-      ZBX_ACTIVE_ALLOW_TIMEOUT: 30
-    # O plugin Prometheus ja vem embutido no agent2 (item key prometheus.data);
-    # a URL de cada /metrics fica no macro {$APP_METRICS_URL} do host Zabbix
-    # (ver zabbix/setup.sh), nao precisa de config estatica aqui.
-    networks: [conexao-solidaria-net]
-
   grafana:
     image: grafana/grafana:11.0.0
     restart: unless-stopped

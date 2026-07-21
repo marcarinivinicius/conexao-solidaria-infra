@@ -11,7 +11,6 @@ resources:
   - rabbitmq/service.yaml
   - zabbix/server.yaml
   - zabbix/web.yaml
-  - zabbix/agent2-daemonset.yaml
   - grafana/configmaps.yaml
   - grafana/configmap-dashboard-json.yaml
   - grafana/deployment.yaml

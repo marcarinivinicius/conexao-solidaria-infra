@@ -2,12 +2,17 @@
 # Configura o Zabbix via API (host group, hosts, items) - roda depois que
 # zabbix-web/zabbix-server ja estao de pe. Idempotente na medida do possivel.
 #
+# Usa "HTTP agent items": o proprio zabbix-server busca a URL de /metrics
+# direto (sem precisar de um Zabbix agent rodando no alvo, nem de plugins
+# especiais) e extrai o valor via regex no texto Prometheus. Testado ao
+# vivo - a alternativa original (plugin Prometheus do zabbix-agent2) nao
+# existe na imagem oficial zabbix/zabbix-agent2:alpine-6.4-latest.
+#
 # Requisitos: curl, jq
 #
 # Uso:
 #   ZABBIX_URL=http://localhost:8080 \
-#   CAMPAIGN_API_METRICS_URL=http://conexao-solidaria-campaign-api:8080/metrics \
-#   AGENT_HOST=zabbix-agent2 \
+#   CAMPAIGN_API_METRICS_URL=http://conexao-solidaria-campaign-api-svc-stable:8080/metrics \
 #   ./zabbix/setup.sh
 
 set -euo pipefail
@@ -15,10 +20,8 @@ set -euo pipefail
 ZABBIX_URL="${ZABBIX_URL:-http://localhost:8080}"
 ZABBIX_USER="${ZABBIX_USER:-Admin}"
 ZABBIX_PASSWORD="${ZABBIX_PASSWORD:-zabbix}"
-AGENT_HOST="${AGENT_HOST:-zabbix-agent2}"
-AGENT_PORT="${AGENT_PORT:-10050}"
-CAMPAIGN_API_METRICS_URL="${CAMPAIGN_API_METRICS_URL:-http://conexao-solidaria-campaign-api:8080/metrics}"
-DONATION_WORKER_METRICS_URL="${DONATION_WORKER_METRICS_URL:-}"
+CAMPAIGN_API_METRICS_URL="${CAMPAIGN_API_METRICS_URL:-http://conexao-solidaria-campaign-api-svc-stable:8080/metrics}"
+DONATION_WORKER_METRICS_URL="${DONATION_WORKER_METRICS_URL:-http://conexao-solidaria-donation-worker-svc:8080/metrics}"
 
 api_url="${ZABBIX_URL%/}/api_jsonrpc.php"
 
@@ -46,71 +49,75 @@ else
   echo "Host group '$GROUP_NAME' ja existe (id=$GROUP_ID)."
 fi
 
-create_host_with_prometheus_item() {
-  local host_name="$1" metrics_url="$2" item_key="$3" item_name="$4"
-
+# HTTP agent items nao exigem interface de agent - o host so precisa
+# existir e pertencer a um grupo.
+ensure_host() {
+  local host_name="$1"
   local existing
   existing=$(rpc "host.get" "{\"filter\":{\"host\":[\"$host_name\"]}}" "$AUTH_FIELD" | jq -r '.result[0].hostid // empty')
   if [ -n "$existing" ]; then
-    echo "Host '$host_name' ja existe (id=$existing), pulando criacao."
+    echo "$existing"
     return
   fi
 
-  echo "Criando host '$host_name' (via agent $AGENT_HOST:$AGENT_PORT)..."
+  echo "Criando host '$host_name'..." >&2
   local host_params
-  host_params=$(cat <<EOF
-{
-  "host": "$host_name",
-  "interfaces": [{"type": 1, "main": 1, "useip": 0, "ip": "", "dns": "$AGENT_HOST", "port": "$AGENT_PORT"}],
-  "groups": [{"groupid": "$GROUP_ID"}],
-  "items": []
+  host_params=$(jq -n --arg host "$host_name" --arg groupid "$GROUP_ID" \
+    '{host: $host, groups: [{groupid: $groupid}], interfaces: []}')
+  rpc "host.create" "$host_params" "$AUTH_FIELD" | jq -r '.result.hostids[0]'
 }
-EOF
-)
-  local host_id
-  host_id=$(rpc "host.create" "$host_params" "$AUTH_FIELD" | jq -r '.result.hostids[0]')
 
-  echo "Criando item '$item_name' ($item_key) no host '$host_name'..."
+create_http_agent_item() {
+  local host_id="$1" item_key="$2" item_name="$3" metrics_url="$4" regex_pattern="$5"
+
+  local existing
+  existing=$(rpc "item.get" "{\"hostids\":[\"$host_id\"],\"filter\":{\"key_\":\"$item_key\"}}" "$AUTH_FIELD" | jq -r '.result[0].itemid // empty')
+  if [ -n "$existing" ]; then
+    echo "Item '$item_key' ja existe (id=$existing), pulando."
+    return
+  fi
+
+  echo "Criando item '$item_name' ($item_key)..."
   local item_params
-  item_params=$(cat <<EOF
-{
-  "name": "$item_name",
-  "key_": "$item_key",
-  "hostid": "$host_id",
-  "type": 0,
-  "value_type": 3,
-  "delay": "30s",
-  "interfaceid": null
-}
-EOF
-)
-  # interfaceid precisa vir da interface criada acima
-  local interface_id
-  interface_id=$(rpc "host.get" "{\"hostids\":[\"$host_id\"],\"selectInterfaces\":[\"interfaceid\"]}" "$AUTH_FIELD" | jq -r '.result[0].interfaces[0].interfaceid')
-  item_params=$(echo "$item_params" | jq --arg iid "$interface_id" '.interfaceid = $iid')
+  item_params=$(jq -n \
+    --arg hostid "$host_id" \
+    --arg key "$item_key" \
+    --arg name "$item_name" \
+    --arg url "$metrics_url" \
+    --arg pattern "$regex_pattern" \
+    '{
+      name: $name,
+      key_: $key,
+      hostid: $hostid,
+      type: 19,
+      url: $url,
+      value_type: 0,
+      delay: "30s",
+      preprocessing: [
+        { type: 5, params: ($pattern + "\n\\1"), error_handler: 0, error_handler_params: "" }
+      ]
+    }')
   rpc "item.create" "$item_params" "$AUTH_FIELD" | jq .
 }
 
-# HTTP requests recebidas pela campaign-api (via plugin Prometheus do agent2,
-# item key prometheus.data[<url>,<nome-da-metrica-prometheus>])
-create_host_with_prometheus_item \
-  "campaign-api" \
+CAMPAIGN_HOST_ID=$(ensure_host "campaign-api")
+create_http_agent_item \
+  "$CAMPAIGN_HOST_ID" \
+  "campaignapi.health.requests.total" \
+  "Health Requests Total" \
   "$CAMPAIGN_API_METRICS_URL" \
-  "prometheus.data[$CAMPAIGN_API_METRICS_URL,http_requests_received_total]" \
-  "HTTP Requests Total"
+  'http_request_duration_seconds_count\{[^}]*endpoint="/health"[^}]*\}\s+([0-9.]+)'
 
-if [ -n "$DONATION_WORKER_METRICS_URL" ]; then
-  create_host_with_prometheus_item \
-    "donation-worker" \
-    "$DONATION_WORKER_METRICS_URL" \
-    "prometheus.data[$DONATION_WORKER_METRICS_URL,process_cpu_seconds_total]" \
-    "CPU Seconds Total"
-fi
+WORKER_HOST_ID=$(ensure_host "donation-worker")
+create_http_agent_item \
+  "$WORKER_HOST_ID" \
+  "donationworker.health.requests.total" \
+  "Health Requests Total" \
+  "$DONATION_WORKER_METRICS_URL" \
+  'http_request_duration_seconds_count\{[^}]*endpoint="/health"[^}]*\}\s+([0-9.]+)'
 
-# CPU/memoria por pod nao vem do Zabbix (o plugin Docker do agent2 exige
-# /var/run/docker.sock como arquivo real no node, o que nao se sustentou
-# no driver docker do minikube em teste - travava o proprio agent2). Use
-# `kubectl top pods -n conexao-solidaria` como evidencia de consumo de
-# recursos no video de demonstracao.
+# CPU/memoria por pod nao vem do Zabbix - use `kubectl top pods -n
+# conexao-solidaria` como evidencia de consumo de recursos no video de
+# demonstracao.
 
 echo "Pronto. Acesse o Grafana (datasource 'Zabbix' ja provisionado) para ver os paineis."
