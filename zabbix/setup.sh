@@ -107,38 +107,10 @@ if [ -n "$DONATION_WORKER_METRICS_URL" ]; then
     "CPU Seconds Total"
 fi
 
-# CPU/memoria dos containers/pods, via plugin Docker embutido no agent2
-# (precisa do agent2 com acesso ao socket do Docker/containerd - ver k8s/zabbix-agent2-daemonset.yaml)
-DOCKER_HOST_NAME="docker-containers"
-existing=$(rpc "host.get" "{\"filter\":{\"host\":[\"$DOCKER_HOST_NAME\"]}}" "$AUTH_FIELD" | jq -r '.result[0].hostid // empty')
-if [ -z "$existing" ]; then
-  echo "Criando host '$DOCKER_HOST_NAME' com item de discovery de containers..."
-  host_params=$(cat <<EOF
-{
-  "host": "$DOCKER_HOST_NAME",
-  "interfaces": [{"type": 1, "main": 1, "useip": 1, "ip": "$AGENT_HOST", "dns": "", "port": "$AGENT_PORT"}],
-  "groups": [{"groupid": "$GROUP_ID"}]
-}
-EOF
-)
-  host_id=$(rpc "host.create" "$host_params" "$AUTH_FIELD" | jq -r '.result.hostids[0]')
-  interface_id=$(rpc "host.get" "{\"hostids\":[\"$host_id\"],\"selectInterfaces\":[\"interfaceid\"]}" "$AUTH_FIELD" | jq -r '.result[0].interfaces[0].interfaceid')
-
-  item_params=$(cat <<EOF
-{
-  "name": "Docker containers (discovery)",
-  "key_": "docker.containers",
-  "hostid": "$host_id",
-  "interfaceid": "$interface_id",
-  "type": 0,
-  "value_type": 4,
-  "delay": "60s"
-}
-EOF
-)
-  rpc "item.create" "$item_params" "$AUTH_FIELD" | jq .
-else
-  echo "Host '$DOCKER_HOST_NAME' ja existe, pulando."
-fi
+# CPU/memoria por pod nao vem do Zabbix (o plugin Docker do agent2 exige
+# /var/run/docker.sock como arquivo real no node, o que nao se sustentou
+# no driver docker do minikube em teste - travava o proprio agent2). Use
+# `kubectl top pods -n conexao-solidaria` como evidencia de consumo de
+# recursos no video de demonstracao.
 
 echo "Pronto. Acesse o Grafana (datasource 'Zabbix' ja provisionado) para ver os paineis."

@@ -36,7 +36,7 @@ data:
         {
           "id": 2,
           "type": "timeseries",
-          "title": "Containers Docker (descoberta)",
+          "title": "CPU Seconds Total - donation-worker",
           "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
           "datasource": { "type": "alexanderzobnin-zabbix-datasource", "uid": "Zabbix" },
           "targets": [
@@ -44,9 +44,9 @@ data:
               "refId": "A",
               "queryType": 0,
               "group": { "filter": "Conexao Solidaria" },
-              "host": { "filter": "docker-containers" },
+              "host": { "filter": "donation-worker" },
               "application": { "filter": "" },
-              "item": { "filter": "/.*/" },
+              "item": { "filter": "CPU Seconds Total" },
               "functions": [],
               "options": { "showDisabledItems": false }
             }

@@ -112,17 +112,16 @@ minikube service grafana -n conexao-solidaria
 Depois de tudo `Running`, rode o mesmo `zabbix/setup.sh` apontando
 `ZABBIX_URL` para a URL retornada pelo `minikube service zabbix-web`.
 
-### Sobre o painel de CPU/Memória por container
+### Sobre CPU/Memória por pod
 
-O `zabbix-agent2` roda como `DaemonSet` com o plugin **Docker** embutido,
-lendo `/var/run/docker.sock` do node para reportar CPU/memória por
-container (inclui os containers dos pods da aplicação). Isso só funciona
-se o node do cluster expõe esse socket (verdadeiro no driver `docker` do
-minikube; **não** funciona em nodes containerd puro). Se o painel
-"Containers Docker" ficar vazio no Grafana, use `kubectl top pods -n
-conexao-solidaria` como evidência alternativa de consumo de recursos no
-vídeo de demonstração — o painel de métricas HTTP (via plugin Prometheus
-do agent2, item `prometheus.data`) não depende disso e sempre funciona.
+O `zabbix-agent2` coleta as métricas HTTP das apps via plugin Prometheus
+(`prometheus.data`) — isso sempre funciona, é o que os painéis do Grafana
+mostram. Chegamos a testar o plugin **Docker** do agent2 (CPU/memória por
+container, lendo `/var/run/docker.sock` do node) mas o driver `docker` do
+minikube não expõe esse socket como um arquivo real — o kubelet rejeita o
+`hostPath` (`is not a file`) e trava o pod inteiro. Por isso ele não faz
+parte do manifest: para CPU/memória por pod, use `kubectl top pods -n
+conexao-solidaria` como evidência no vídeo de demonstração.
 
 ## Ordem de subida
 

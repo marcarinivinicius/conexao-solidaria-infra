@@ -22,23 +22,17 @@ spec:
               value: zabbix-agent2
             - name: ZBX_SERVER_HOST
               value: zabbix-server
-          # Plugin Docker embutido no agent2 le direto do socket do node
-          # para reportar CPU/memoria por container (inclui os pods da app).
-          # Caveat: so funciona se o node expoe /var/run/docker.sock (driver
-          # docker do minikube). Em nodes containerd, esse painel fica vazio
-          # e so as metricas HTTP (prometheus.data) continuam funcionando -
-          # ver README para o fallback via `kubectl top pods`.
-          volumeMounts:
-            - name: docker-sock
-              mountPath: /var/run/docker.sock
+          # O plugin Docker do agent2 (CPU/memoria por container via
+          # /var/run/docker.sock) foi removido daqui: testado ao vivo no
+          # driver docker do minikube e o node nao expõe o socket como um
+          # arquivo real (kubelet rejeita o hostPath com "is not a file"),
+          # o que travava o pod inteiro (nem as metricas HTTP via plugin
+          # Prometheus rodavam). CPU/memoria por pod fica por conta de
+          # `kubectl top pods` no video de demonstracao; as metricas HTTP
+          # (prometheus.data) continuam funcionando normalmente por aqui.
           resources:
             requests: { cpu: 50m, memory: 64Mi }
             limits: { cpu: 200m, memory: 128Mi }
-      volumes:
-        - name: docker-sock
-          hostPath:
-            path: /var/run/docker.sock
-            type: FileOrCreate
 ---
 apiVersion: v1
 kind: Service
