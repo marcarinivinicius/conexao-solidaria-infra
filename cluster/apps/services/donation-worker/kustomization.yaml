@@ -4,9 +4,10 @@ kind: Kustomization
 namespace: conexao-solidaria
 
 resources:
-  - secret.yaml
-  - rollout.yaml
+- secret.yaml
+- rollout.yaml
 
 images:
-  - name: ghcr.io/marcarinivinicius/conexao-solidaria-donation-worker
-    newTag: latest
+- name: ghcr.io/marcarinivinicius/conexao-solidaria-donation-worker
+  newName: ghcr.io/marcarinivinicius/conexao-solidaria-donation-worker
+  newTag: v0.1.0
