@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: conexao-solidaria-donation-worker-svc
+  namespace: conexao-solidaria
+  labels:
+    app: conexao-solidaria-donation-worker
+spec:
+  selector:
+    app: conexao-solidaria-donation-worker
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080

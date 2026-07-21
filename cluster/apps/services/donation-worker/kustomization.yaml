@@ -5,6 +5,7 @@ namespace: conexao-solidaria
 
 resources:
 - secret.yaml
+- service.yaml
 - rollout.yaml
 
 images:
