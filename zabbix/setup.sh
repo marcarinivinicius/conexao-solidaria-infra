@@ -61,7 +61,7 @@ create_host_with_prometheus_item() {
   host_params=$(cat <<EOF
 {
   "host": "$host_name",
-  "interfaces": [{"type": 1, "main": 1, "useip": 1, "ip": "$AGENT_HOST", "dns": "", "port": "$AGENT_PORT"}],
+  "interfaces": [{"type": 1, "main": 1, "useip": 0, "ip": "", "dns": "$AGENT_HOST", "port": "$AGENT_PORT"}],
   "groups": [{"groupid": "$GROUP_ID"}],
   "items": []
 }
