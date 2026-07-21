@@ -47,12 +47,13 @@ kubectl argo rollouts abort conexao-solidaria-campaign-api -n conexao-solidaria
 
 ## Por que sem `analysis` automatizada
 
-O exemplo de referência interno usa uma `AnalysisTemplate` que consulta
-Datadog pra decidir promover ou abortar o canary sozinho. Não temos
-Datadog neste projeto (observabilidade aqui é Zabbix/Grafana), então os
-`Rollout` deste repo usam só steps de peso + pausa manual
-(`setWeight`/`pause`) — a promoção entre os degraus é decidida por quem
-está acompanhando o deploy, não automaticamente por métrica.
+Uma `AnalysisTemplate` automatizada (consultando alguma ferramenta de APM
+pra decidir promover ou abortar o canary sozinho) exigiria uma integração
+que não faz parte do escopo deste projeto (observabilidade aqui é
+Zabbix/Grafana). Por isso os `Rollout` deste repo usam só steps de peso +
+pausa manual (`setWeight`/`pause`) — a promoção entre os degraus é
+decidida por quem está acompanhando o deploy, não automaticamente por
+métrica.
 
 > `ponytail:` upgrade natural seria uma `AnalysisTemplate` baseada em
 > Prometheus/Zabbix (ex.: taxa de erro HTTP via `/metrics`), adicionar
