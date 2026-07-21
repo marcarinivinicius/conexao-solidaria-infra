@@ -4,11 +4,12 @@ kind: Kustomization
 namespace: conexao-solidaria
 
 resources:
-  - secret.yaml
-  - service.yaml
-  - ingress.yaml
-  - rollout.yaml
+- secret.yaml
+- service.yaml
+- ingress.yaml
+- rollout.yaml
 
 images:
-  - name: ghcr.io/marcarinivinicius/conexao-solidaria-campaign-api
-    newTag: latest
+- name: ghcr.io/marcarinivinicius/conexao-solidaria-campaign-api
+  newName: ghcr.io/marcarinivinicius/conexao-solidaria-campaign-api
+  newTag: v0.1.0
