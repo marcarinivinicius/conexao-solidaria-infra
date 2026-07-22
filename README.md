@@ -122,7 +122,22 @@ depende de agente rodando no alvo nem de plugin nenhum — testamos
 originalmente com o plugin Prometheus do `zabbix-agent2`, mas ele não
 existe na imagem oficial `zabbix/zabbix-agent2:alpine-6.4-latest`
 (`Unknown metric prometheus.data`), então não há mais nenhum
-`zabbix-agent2` no cluster.
+`zabbix-agent2` no cluster. As métricas do RabbitMQ (fila de doações)
+vêm direto da API de management dele (`/api/queues/...`), extraídas via
+`item.preprocessing` tipo `JSONPATH`.
+
+**Sobre gráficos "picotados" em endpoints de baixo tráfego**: `campaign-api`
+roda com mais de uma réplica atrás de um `Service` (round-robin). Cada
+processo só expõe no seu próprio `/metrics` os endpoints que ele mesmo
+recebeu — então um item que raspa um endpoint pouco chamado (ex.:
+"Painel Público - Consultas") pode cair ora no pod que tem o dado, ora no
+que não tem. Configuramos `error_handler=2` (valor `0` em vez de erro) pra
+esses items não pararem de coletar, mas isso pode aparecer como quedas
+pontuais pra `0` no gráfico — gere um pouco de tráfego real (`curl`/Swagger)
+pouco antes de gravar o vídeo pra esses painéis ficarem com dados mais
+recentes e "cheios". O item "Health Requests Total" não sofre disso porque
+os probes de readiness/liveness do Kubernetes batem em `/health` de cada
+pod individualmente o tempo todo.
 
 **CPU/Memória por pod** não vem do Zabbix — chegamos a testar o plugin
 Docker do agent2 (lendo `/var/run/docker.sock` do node), mas o driver

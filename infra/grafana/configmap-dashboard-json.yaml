@@ -15,40 +15,115 @@ data:
       "time": { "from": "now-1h", "to": "now" },
       "panels": [
         {
-          "id": 1,
+          "id": 2,
           "type": "timeseries",
           "title": "Health Requests Total - campaign-api",
-          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+          "gridPos": { "h": 7, "w": 8, "x": 0, "y": 0 },
           "datasource": { "type": "alexanderzobnin-zabbix-datasource", "uid": "Zabbix" },
           "targets": [
             {
-              "refId": "A",
-              "queryType": 0,
-              "group": { "filter": "Conexao Solidaria" },
-              "host": { "filter": "campaign-api" },
-              "application": { "filter": "" },
-              "item": { "filter": "Health Requests Total" },
-              "functions": [],
-              "options": { "showDisabledItems": false }
+              "refId": "A", "queryType": 0,
+              "group": { "filter": "Conexao Solidaria" }, "host": { "filter": "campaign-api" },
+              "application": { "filter": "" }, "item": { "filter": "Health Requests Total" },
+              "functions": [], "options": { "showDisabledItems": false }
             }
           ]
         },
         {
-          "id": 2,
+          "id": 3,
           "type": "timeseries",
-          "title": "Health Requests Total - donation-worker",
-          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+          "title": "Painel Público - Consultas (GET /campanhas)",
+          "gridPos": { "h": 7, "w": 8, "x": 8, "y": 0 },
           "datasource": { "type": "alexanderzobnin-zabbix-datasource", "uid": "Zabbix" },
           "targets": [
             {
-              "refId": "A",
-              "queryType": 0,
-              "group": { "filter": "Conexao Solidaria" },
-              "host": { "filter": "donation-worker" },
-              "application": { "filter": "" },
-              "item": { "filter": "Health Requests Total" },
-              "functions": [],
-              "options": { "showDisabledItems": false }
+              "refId": "A", "queryType": 0,
+              "group": { "filter": "Conexao Solidaria" }, "host": { "filter": "campaign-api" },
+              "application": { "filter": "" }, "item": { "filter": "Painel Publico - Consultas" },
+              "functions": [], "options": { "showDisabledItems": false }
+            }
+          ]
+        },
+        {
+          "id": 4,
+          "type": "timeseries",
+          "title": "Doações Registradas (POST /doacoes)",
+          "gridPos": { "h": 7, "w": 8, "x": 16, "y": 0 },
+          "datasource": { "type": "alexanderzobnin-zabbix-datasource", "uid": "Zabbix" },
+          "targets": [
+            {
+              "refId": "A", "queryType": 0,
+              "group": { "filter": "Conexao Solidaria" }, "host": { "filter": "campaign-api" },
+              "application": { "filter": "" }, "item": { "filter": "Doacoes Registradas" },
+              "functions": [], "options": { "showDisabledItems": false }
+            }
+          ]
+        },
+        {
+          "id": 6,
+          "type": "stat",
+          "title": "RabbitMQ - Mensagens na Fila (agora)",
+          "gridPos": { "h": 6, "w": 6, "x": 0, "y": 7 },
+          "datasource": { "type": "alexanderzobnin-zabbix-datasource", "uid": "Zabbix" },
+          "options": { "colorMode": "background", "graphMode": "none", "reduceOptions": { "calcs": ["lastNotNull"] } },
+          "targets": [
+            {
+              "refId": "A", "queryType": 0,
+              "group": { "filter": "Conexao Solidaria" }, "host": { "filter": "rabbitmq" },
+              "application": { "filter": "" }, "item": { "filter": "Fila de Doacoes - Mensagens na Fila" },
+              "functions": [], "options": { "showDisabledItems": false }
+            }
+          ]
+        },
+        {
+          "id": 7,
+          "type": "stat",
+          "title": "RabbitMQ - Consumidores Ativos (workers)",
+          "gridPos": { "h": 6, "w": 6, "x": 6, "y": 7 },
+          "datasource": { "type": "alexanderzobnin-zabbix-datasource", "uid": "Zabbix" },
+          "options": { "colorMode": "background", "graphMode": "none", "reduceOptions": { "calcs": ["lastNotNull"] } },
+          "targets": [
+            {
+              "refId": "A", "queryType": 0,
+              "group": { "filter": "Conexao Solidaria" }, "host": { "filter": "rabbitmq" },
+              "application": { "filter": "" }, "item": { "filter": "Fila de Doacoes - Consumidores Ativos" },
+              "functions": [], "options": { "showDisabledItems": false }
+            }
+          ]
+        },
+        {
+          "id": 8,
+          "type": "timeseries",
+          "title": "RabbitMQ - Mensagens Publicadas x Entregues (total acumulado)",
+          "gridPos": { "h": 6, "w": 12, "x": 12, "y": 7 },
+          "datasource": { "type": "alexanderzobnin-zabbix-datasource", "uid": "Zabbix" },
+          "targets": [
+            {
+              "refId": "A", "queryType": 0,
+              "group": { "filter": "Conexao Solidaria" }, "host": { "filter": "rabbitmq" },
+              "application": { "filter": "" }, "item": { "filter": "Fila de Doacoes - Mensagens Publicadas" },
+              "functions": [], "options": { "showDisabledItems": false }
+            },
+            {
+              "refId": "B", "queryType": 0,
+              "group": { "filter": "Conexao Solidaria" }, "host": { "filter": "rabbitmq" },
+              "application": { "filter": "" }, "item": { "filter": "Fila de Doacoes - Mensagens Entregues" },
+              "functions": [], "options": { "showDisabledItems": false }
+            }
+          ]
+        },
+        {
+          "id": 10,
+          "type": "timeseries",
+          "title": "Health Requests Total - donation-worker",
+          "gridPos": { "h": 7, "w": 24, "x": 0, "y": 13 },
+          "datasource": { "type": "alexanderzobnin-zabbix-datasource", "uid": "Zabbix" },
+          "targets": [
+            {
+              "refId": "A", "queryType": 0,
+              "group": { "filter": "Conexao Solidaria" }, "host": { "filter": "donation-worker" },
+              "application": { "filter": "" }, "item": { "filter": "Health Requests Total" },
+              "functions": [], "options": { "showDisabledItems": false }
             }
           ]
         }
