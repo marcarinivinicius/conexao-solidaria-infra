@@ -81,6 +81,26 @@ DONATION_WORKER_METRICS_URL=http://conexao-solidaria-donation-worker:8080/metric
 
 Requer `curl` e `jq` instalados.
 
+### Populando os gráficos com dados de demonstração
+
+Gráfico vazio não convence ninguém no vídeo. `scripts/seed-demo-data.sh`
+gera dados **reais** via API (não fixture direto no banco): cria
+campanhas, cadastra doadores com CPF válido e manda um fluxo contínuo de
+doações + consultas ao painel público por um tempo configurável — isso
+popula Postgres, RabbitMQ e os painéis do Zabbix/Grafana ao mesmo tempo.
+
+```bash
+CAMPAIGN_API_URL=http://localhost:8081 \
+DURATION_SECONDS=180 \
+./scripts/seed-demo-data.sh
+```
+
+Rode pouco antes de gravar o vídeo (ou deixe rodando enquanto grava as
+outras partes) — os painéis "Painel Público - Consultas" e "Doações
+Registradas" em particular ficam bem mais ricos com tráfego contínuo. Veja
+[`docs/video/roteiro.md`](https://github.com/marcarinivinicius/conexao-solidaria-docs/blob/main/video/roteiro.md)
+para o roteiro completo. Requer `curl` e `jq`.
+
 ## Opção 2 — Minikube / Kubernetes
 
 ```bash
