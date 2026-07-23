@@ -12,6 +12,18 @@ kubectl -n argocd wait --for=condition=available --timeout=300s deployment/argoc
 
 ## Acessar o dashboard
 
+Aplique o Service NodePort deste diretório (uma vez só, não faz parte do
+`install.yaml` oficial — é só uma porta fixa a mais pra não depender de
+`port-forward`, que cai toda vez que o pod do `argocd-server` é
+substituído):
+
+```bash
+kubectl apply -f infra/argocd/nodeport-service.yaml
+minikube service argocd-server-nodeport -n argocd --url   # ou https://<minikube ip>:30443
+```
+
+Se preferir `port-forward` mesmo assim (funciona igual, só não é fixo):
+
 ```bash
 kubectl -n argocd port-forward svc/argocd-server 8081:443
 ```
