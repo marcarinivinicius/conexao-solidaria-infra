@@ -45,7 +45,7 @@ gen_cpf() {
 }
 
 echo "Autenticando como GestorONG..."
-GESTOR_TOKEN=$(curl -s -X POST "$CAMPAIGN_API_URL/api/v1/auth/gestor/login" \
+GESTOR_TOKEN=$(curl -s -X POST "$CAMPAIGN_API_URL/api/v1/auth/login" \
   -H "Content-Type: application/json" \
   -d "{\"email\":\"$GESTOR_EMAIL\",\"senha\":\"$GESTOR_SENHA\"}" | jq -r '.token')
 
@@ -86,11 +86,11 @@ for i in $(seq 0 $((NUM_DOADORES - 1))); do
   senha="SenhaDemo123!"
   cpf=$(gen_cpf)
 
-  curl -s -X POST "$CAMPAIGN_API_URL/api/v1/doadores" \
+  curl -s -X POST "$CAMPAIGN_API_URL/api/v1/auth/register/doador" \
     -H "Content-Type: application/json" \
     -d "{\"nomeCompleto\":\"$nome\",\"email\":\"$email\",\"cpf\":\"$cpf\",\"senha\":\"$senha\"}" > /dev/null
 
-  token=$(curl -s -X POST "$CAMPAIGN_API_URL/api/v1/doadores/login" \
+  token=$(curl -s -X POST "$CAMPAIGN_API_URL/api/v1/auth/login" \
     -H "Content-Type: application/json" \
     -d "{\"email\":\"$email\",\"senha\":\"$senha\"}" | jq -r '.token // empty')
 
