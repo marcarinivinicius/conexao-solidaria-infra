@@ -12,4 +12,4 @@ resources:
 images:
 - name: ghcr.io/marcarinivinicius/conexao-solidaria-campaign-api
   newName: ghcr.io/marcarinivinicius/conexao-solidaria-campaign-api
-  newTag: v0.2.1
+  newTag: v0.2.2
