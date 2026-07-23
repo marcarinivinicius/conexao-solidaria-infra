@@ -20,6 +20,7 @@ kubectl port-forward -n argocd svc/argocd-server 8082:443 > "$LOG_DIR/pf-argocd.
 disown -a
 
 echo "Swagger:  http://localhost:8081/swagger"
+echo "Scalar:   http://localhost:8081/scalar/v1"
 echo "Grafana:  http://localhost:3000 (admin/admin)"
 echo "Zabbix:   http://localhost:8080 (Admin/zabbix)"
 echo "RabbitMQ: http://127.0.0.1:15672"
