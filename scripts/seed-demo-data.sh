@@ -86,7 +86,7 @@ for i in $(seq 0 $((NUM_DOADORES - 1))); do
   senha="SenhaDemo123!"
   cpf=$(gen_cpf)
 
-  curl -s -X POST "$CAMPAIGN_API_URL/api/v1/auth/register/doador" \
+  curl -s -X POST "$CAMPAIGN_API_URL/api/v1/auth/register" \
     -H "Content-Type: application/json" \
     -d "{\"nomeCompleto\":\"$nome\",\"email\":\"$email\",\"cpf\":\"$cpf\",\"senha\":\"$senha\"}" > /dev/null
 
