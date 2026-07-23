@@ -42,6 +42,14 @@ Credenciais usadas abaixo (`conexaosolidaria` / `admin` / `zabbix`) são
 defaults de desenvolvimento, documentados de propósito para facilitar a
 correção — não use em produção.
 
+**Atenção ao `JWT_SECRET_KEY`** em
+[`cluster/apps/services/campaign-api/secret.yaml`](cluster/apps/services/campaign-api/secret.yaml):
+a `campaign-api` recusa subir (`InvalidOperationException` no boot) se
+esse valor ainda for o placeholder e `ASPNETCORE_ENVIRONMENT` (setado como
+`Production` no `rollout.yaml`) não for `Development` — proteção contra
+subir com uma chave de assinatura conhecida publicamente no repo. Gere um
+valor real (`openssl rand -base64 48`) antes do primeiro deploy real.
+
 ## Opção 1 — Docker Compose (mais rápido para dev do dia a dia)
 
 ```bash
