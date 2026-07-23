@@ -1,0 +1,19 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: rabbitmq-ingress
+  namespace: conexao-solidaria
+  annotations:
+    kubernetes.io/ingress.class: nginx
+spec:
+  rules:
+    - host: rabbitmq.conexao-solidaria.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: rabbitmq
+                port:
+                  number: 15672

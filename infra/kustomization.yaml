@@ -9,8 +9,11 @@ resources:
   - postgres/service.yaml
   - rabbitmq/deployment.yaml
   - rabbitmq/service.yaml
+  - rabbitmq/ingress.yaml
   - zabbix/server.yaml
   - zabbix/web.yaml
+  - zabbix/ingress.yaml
   - grafana/configmaps.yaml
   - grafana/configmap-dashboard-json.yaml
   - grafana/deployment.yaml
+  - grafana/ingress.yaml
