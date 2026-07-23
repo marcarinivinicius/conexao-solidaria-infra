@@ -11,4 +11,4 @@ resources:
 images:
 - name: ghcr.io/marcarinivinicius/conexao-solidaria-donation-worker
   newName: ghcr.io/marcarinivinicius/conexao-solidaria-donation-worker
-  newTag: v0.1.0
+  newTag: v0.2.0
